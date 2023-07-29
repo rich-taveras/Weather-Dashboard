@@ -5,6 +5,7 @@ var windEl = document.getElementById("wind");
 var humidityEl = document.getElementById("humidity");
 var searchBtn = document.getElementById("search-btn");
 var cityInput = document.getElementById("city-input");
+var fivedayForecastEl=document.getElementById("fiveda-forecast")
 
 function searchCity() {
   var cityName = cityInput.value;
@@ -26,7 +27,7 @@ function displayWeather(cityName) {
     })
     .then(function (currentData) {
       console.log(currentData);
-      titleEl.innerHTML = currentData.name + "<img src='https://openweathermap.org/img/wn/" + currentData.weather[0].icon + "@2x.png'>"
+      titleEl.innerHTML = currentData.name + dayjs.unix(currentData.dt).format(" (MM/DD/YYYY)") + "<img src='https://openweathermap.org/img/wn/" + currentData.weather[0].icon + "@2x.png'>"
       
       //+ dayjs.unix(currentData.dt).format(" (MM/DD/YYYY)") +
     });
@@ -49,10 +50,16 @@ function displayWeather(cityName) {
 
       //grab every 12pm for each day for 5 days
       var forecastArray = forecastData.list;
-      for (let i = 3; i < forecastArray.length; i = i + 8) {
+     
+      for (let i = 3; i < forecastArray.length; i = i + 8,j++) {
         console.log(forecastArray[i]);
-      }
+        var cardTitle=document.getElementById("card-title"+j)
+        console.log("card-title"+j)
+        cardTitle.textContent=dayjs.unix(forecastArray[i].dt).format(" (MM/DD/YYYY)")
+     
+           }
     });
 }
 
 searchBtn.addEventListener("click", searchCity);
+
