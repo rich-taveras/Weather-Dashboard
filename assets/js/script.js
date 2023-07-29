@@ -51,7 +51,7 @@ function displayWeather(cityName) {
       //grab every 12pm for each day for 5 days
       var forecastArray = forecastData.list;
      
-      for (let i = 3; i < forecastArray.length; i = i + 8,j++) {
+      for (let i = 0; i < forecastArray.length; i = i + 8,j++) {
         console.log(forecastArray[i]);
         var cardTitle=document.getElementById("card-title"+j)
         console.log("card-title"+j)
