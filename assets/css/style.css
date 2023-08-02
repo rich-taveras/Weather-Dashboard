@@ -1,3 +1,7 @@
 #main-screen {
     border: solid grey 2pt;
 }
+
+.search-history{
+    text-align: center;
+}

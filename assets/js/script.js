@@ -1,60 +1,94 @@
+// Your API Key
 var apiKey = "f4c48b2431b2e1f893e3a6845dcf023c";
-var titleEl=document.getElementById("title")
-var tempEl=document.getElementById("temp")
-var windEl=document.getElementById("wind")
-var humidityEl=document.getElementById("humidity")
-var searchBtn=document.getElementById("search-btn")
-var cityInput=document.getElementById("city-input")
-var fivedayForcastEl= document.getElementById("fiveday-forecast")
 
+// Function to get weather data for a city
+function getWeatherData(city) {
+  var apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${apiKey}`;
 
-function searchCity(){
-    var cityName=cityInput.value
-
-    displayWeather(cityName)
+  fetch(apiUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      var date = dayjs.unix(data.dt).format("M/D/YYYY");
+      document.getElementById("title").textContent = `${data.name} (${date})`;
+      document.getElementById("temp").textContent = `Temp: ${data.main.temp}F`;
+      document.getElementById("wind").textContent = `Wind Speed: ${data.wind.speed} MPH`;
+      document.getElementById("humidity").textContent = `Humidity: ${data.main.humidity}%`;
+      get5DayForecast(city);
+    })
+    .catch((error) => {
+      // console.error("Error fetching weather data:", error);
+    });
 }
 
-function displayWeather(cityName){
-    var url="https://api.openweathermap.org/data/2.5/weather?q="+cityName+"&appid="+ apiKey+"&units=imperial"
+var apiKey = "f4c48b2431b2e1f893e3a6845dcf023c";
 
-    fetch(url)
-    .then(function(response){
-        return response.json()
-    })
-    .then(function(currentData){
-        console.log(currentData)
-        titleEl.innerHTML=currentData.name + dayjs.unix(currentData.dt).format(" (MM/DD/YYYY)")+ "<img src='https://openweathermap.org/img/wn/"+ currentData.weather[0].icon+"@2x.png'>"
-    })
-
-
-    var forecastUrl="https://api.openweathermap.org/data/2.5/forecast?q="+cityName+"&appid="+apiKey+"&units=imperial"
-
-    fetch(forecastUrl)
-    .then(function(response){
-        return response.json()
-    })
-    .then(function(forecastData){
-        console.log(forecastData)
-        //grab every 12pm for each day for 5 days
-        var forecastArr=forecastData.list
-  
-        for (let i = 3,j=1; i < forecastArr.length; i=i+8,j++) {
-             console.log(forecastArr[i])
-               var cardTitle=document.getElementById("card-title"+j)
-               console.log("card-title"+j)
-               cardTitle.textContent=dayjs.unix(forecastArr[i].dt).format(" (MM/DD/YYYY)")
-               var temp=document.getElementById("temp"+j)
-
-               temp.textContent=forecastArr[i].main.temp
-        }
-
-    })
+// Function to create the forecast card HTML string
+function createForecastCard(day, date, iconUrl, temp, wind, humidity) {
+  return '<div class="col-sm-2 mb-3 mb-sm-0 forecast-card">' +
+    '<div class="card">' +
+    '<div class="card-body">' +
+    '<h5 class="card-title">' + date + '</h5>' +
+    '<img src="' + iconUrl + '" alt="">' +
+    '<p class="temp">' + temp + '</p>' +
+    '<p class="wind">' + wind + '</p>' +
+    '<p class="humidity">' + humidity + '</p>' +
+    '</div></div></div>';
 }
 
+// Function to get 5-day forecast for a city
+function get5DayForecast(city) {
+  var apiUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&units=imperial&appid=" + apiKey;
 
-searchBtn.addEventListener("click", searchCity)
+  fetch(apiUrl)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      var forecastList = data.list;
+      var startDate = dayjs.unix(forecastList[0].dt); // Get the start date from the API response
+      var forecastHtml = '';
+      for (var i = 0; i < 5; i++) {
+        var forecastData = forecastList[i];
+        var iconCode = forecastData.weather[0].icon;
+        var iconUrl = "https://openweathermap.org/img/wn/" + iconCode + ".png";
+        var temp = "Temp: " + forecastData.main.temp + "F";
+        var wind = "Wind Speed: " + forecastData.wind.speed + " MPH";
+        var humidity = "Humidity: " + forecastData.main.humidity + "%";
 
-// buttons with city names
-var listgroupitemEl=document.getElementById("list-group")
+        // Calculate the date for each forecast card by adding one day to the previous date
+        var date = startDate.add(i, 'day').format("M/D/YYYY");
 
-document.getElementById("list-group-item").addEventListener("click",  searchCity );
+        forecastHtml += createForecastCard(i + 1, date, iconUrl, temp, wind, humidity);
+      }
+
+      // Add forecast cards to the fiveday-forcast container
+      document.getElementById("fiveday-forcast").innerHTML = forecastHtml;
+    })
+    .catch(function (error) {
+      console.error("Error fetching 5-day forecast data:", error);
+    });
+}
+
+// Function to handle search button click
+document.getElementById("search-btn").addEventListener("click", function () {
+  var city = document.getElementById("city-input").value.trim();
+  if (city !== "") {
+    getWeatherData(city);
+    // Add city to search history
+    var listItem = `<li class="list-group-item"><button type="button" class="btn btn-secondary w-100 city-btn">${city}</button></li>`;
+    document.querySelector(".search-history").insertAdjacentHTML("beforeend", listItem);
+    document.getElementById("city-input").value = "";
+  } else {
+    alert("Please enter a city name.");
+  }
+});
+
+// Function to handle click on search history button
+document.querySelector(".search-history").addEventListener("click", function (event) {
+  if (event.target.classList.contains("city-btn")) {
+    var city = event.target.textContent;
+    getWeatherData(city);
+  }
+});
+
+
